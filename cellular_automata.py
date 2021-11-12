@@ -6,50 +6,13 @@ import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 
-class Grid:
-    """
-    Object that implements the full CA state over time
-    """
-
-    def __init__(self):
-        self.dimension = 1
-        self.generation = 0
-        self.size = 100
-        self.state = np.zeros((1, self.size), dtype=int)
-
-    def initialise(self, IC = None):
-        """
-        Initial state (default: one live cell in centre)
-        """
-        if IC == None:
-            self.state[0, [self.size // 2]] = 1
-        else:
-            self.state = IC
-
-    def evolve(self, rule):
-        """
-        Take the state of the current generation and update to next generation
-        according to some rule (input)
-        """
-
-        update = rule.apply(self.state[self.generation,:])
-        self.state = np.concatenate((self.state, [update]), axis=0)
-        self.generation += 1
-
-    def plot(self):
-        """
-        Plot full CA state
-        """
-        plt.imshow(self.state, cmap='gist_gray') #,interpolation='gaussian')
-        plt.show()
-
 
 class Rule:
     """
     Object that implements a 1D CA rule
     """
 
-    def __init__(self, rule):
+    def __init__(self, rule: dict):
         # Check a valid rule is supplied
         if isinstance(rule, dict):
             self.rule = rule
@@ -57,7 +20,7 @@ class Rule:
             raise TypeError('No valid rule supplied')
 
 
-    def apply(self, current_state):
+    def apply(self, current_state: list):
         """
         Apply the given 1D CA rule (dict) to a state (current_state)
         """
@@ -72,6 +35,50 @@ class Rule:
 
         return new_state
 
+
+class Grid:
+    """
+    Class that implements the full CA state over discrete time
+    """
+
+    def __init__(self):
+        self.dimension = 1
+        self.generation = 0
+        self.size = 100
+        self.state = np.zeros((1, self.size), dtype=int)
+
+    def initialise(self, IC: list = []):
+        """
+        Initial state (default: one live cell in centre)
+        """
+        if IC == []:
+            self.state[0, [self.size // 2]] = 1
+        elif isinstance(IC, list):
+            if len(IC) == self.size:
+                self.state = IC
+            else:
+                raise TypeError('Not a valid initial condition')
+            raise TypeError('Not a valid initial condition')
+
+    def evolve(self, rule: Rule):
+        """
+        Take the state of the current generation and update to next generation
+        according to some rule (input)
+        """
+        update = rule.apply(self.state[self.generation,:])
+        self.state = np.concatenate((self.state, [update]), axis=0)
+        self.generation += 1
+
+    def plot(self):
+        """
+        Plot full CA state
+        """
+        plt.clf()
+        plt.imshow(self.state, cmap='gist_gray')
+        plt.show()
+
+
+####### TESTS
 
 # Generate all 256 nearest-neighbour 1D rules (Wolfram convention)
 rules = []
@@ -90,7 +97,7 @@ grid.initialise()
 num_generations = 200
 
 """
-# Update grids with a rule
+# Plot the result of each rule
 for j in range(256):
     grid = Grid()
     grid.initialise()
@@ -102,8 +109,8 @@ for j in range(256):
     grid.plot()
 """
 
+# Apply random rules at each stage of the evolution
 i = 0
-
 while True:
     grid = Grid()
     grid.initialise()
